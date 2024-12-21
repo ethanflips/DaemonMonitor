@@ -36,8 +36,10 @@ type DaemonState struct {
 	Timestamp  string `json:"timestamp"`
 }
 
-var EstopMap = make(map[string]bool)
-var ErrorMap = make(map[string]string)
+var latestStates []DaemonState
+
+var estopMap = make(map[string]bool)
+var errorMap = make(map[string]string)
 
 var m = sync.RWMutex{}
 var wg = sync.WaitGroup{}
@@ -101,6 +103,7 @@ func DataFetch(url string) ([]DaemonState, error) {
 
 	}
 	fmt.Printf("Success!\n")
+	latestStates = states
 	return states, nil
 }
 
@@ -109,12 +112,12 @@ func CheckEstop(sim DaemonState) {
 	checkTerm := "estop"
 	host := sim.Hostname
 	hasEstop := strings.Contains(sim.State, checkTerm)
-	if hasEstop && !EstopMap[host] {
+	if hasEstop && !estopMap[host] {
 		noti := fmt.Sprintf("Sim %d | ESTOP", sim.Number)
 		SendSimNoti(noti, ntfyEstopURL)
-		EstopMap[host] = true
-	} else if !hasEstop && EstopMap[host] {
-		delete(EstopMap, host)
+		estopMap[host] = true
+	} else if !hasEstop && estopMap[host] {
+		delete(estopMap, host)
 	}
 }
 
@@ -124,21 +127,21 @@ func CheckSimErrors(sim DaemonState) {
 	serverStatus := strings.ToLower(sim.Server)
 	rf2Status := strings.ToLower(sim.RFactor)
 	serverFailed := strings.Contains(serverStatus, "failedtostart")
-	alreadyFailed := strings.Contains(ErrorMap[host], "fail")
+	alreadyFailed := strings.Contains(errorMap[host], "fail")
 	rf2Crashed := strings.Contains(rf2Status, "crashed")
-	alreadyCrashed := strings.Contains(ErrorMap[host], "crashed")
+	alreadyCrashed := strings.Contains(errorMap[host], "crashed")
 
 	if serverFailed && !alreadyFailed {
 		SendSimNoti(fmt.Sprintf("%s | Server Failed", host), ntfyErrURL)
-		ErrorMap[host] = "server failed"
+		errorMap[host] = "server failed"
 	} else if !serverFailed && alreadyFailed {
-		delete(ErrorMap, host)
+		delete(errorMap, host)
 	}
 	if rf2Crashed && !alreadyCrashed {
 		SendSimNoti(fmt.Sprintf("%s | Crashed", host), ntfyErrURL)
-		ErrorMap[host] = "crashed"
+		errorMap[host] = "crashed"
 	} else if !rf2Crashed && alreadyCrashed {
-		delete(ErrorMap, host)
+		delete(errorMap, host)
 	}
 
 }
@@ -162,6 +165,7 @@ func ParseInt(value string) int {
 
 func main() {
 	fmt.Printf("Daemon Monitor Starting...\n")
+	go StartWebService()
 	for {
 		go DataFetch(dataURL)
 		time.Sleep(20 * time.Second)
