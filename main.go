@@ -2,8 +2,10 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"net/http"
+	"os"
 	"strconv"
 	"strings"
 	"sync"
@@ -12,10 +14,14 @@ import (
 	"github.com/chromedp/chromedp"
 )
 
-const dataURL = "http://10.101.20.10:3000/game-servers/daemon-states"
-const fetchInterval = 25 * time.Second
-const ntfyEstopURL = "https://ntfy.sh/ethandaemonalerts555"
-const ntfyErrURL = "https://ntfy.sh/ethandaemonalerts556"
+var dataURL = "http://10.101.20.10:3000/game-servers/daemon-states"
+var fetchInterval = 25 * time.Second
+var ntfyEstopURL = "https://ntfy.sh/ethandaemonalerts555"
+var ntfyErrURL = "https://ntfy.sh/ethandaemonalerts556"
+var activeSims int
+var idleSims int
+var errorList string
+var latestFetch string
 
 type DaemonState struct {
 	Number     int    `json:"number"`
@@ -69,8 +75,9 @@ func DataFetch(url string) ([]DaemonState, error) {
 		return nil, fmt.Errorf("failed to fetch table: %v", err)
 	}
 
-	currentTime := time.Now().Format("2006-01-02 15:04:05")
+	currentTime := time.Now().Format("15:04:05")
 	var states []DaemonState
+	activeCounter := 0
 	for _, row := range rows {
 		cols := strings.Split(row, "|")
 		if len(cols) < 14 {
@@ -100,14 +107,19 @@ func DataFetch(url string) ([]DaemonState, error) {
 		CheckSimErrors(state)
 		states = append(states, state)
 		m.Unlock()
+		if state.SessionID != "" {
+			activeCounter++
+		}
 
 	}
+	activeSims = activeCounter / 2
+	idleSims = 83 - activeSims
 	fmt.Printf("Success!\n")
 	latestStates = states
+	latestFetch = currentTime
 	return states, nil
 }
 
-// only sends notification
 func CheckEstop(sim DaemonState) {
 	checkTerm := "estop"
 	host := sim.Hostname
@@ -124,26 +136,73 @@ func CheckEstop(sim DaemonState) {
 func CheckSimErrors(sim DaemonState) {
 	// check for Looping
 	host := sim.Hostname
+
 	serverStatus := strings.ToLower(sim.Server)
 	rf2Status := strings.ToLower(sim.RFactor)
+	clientStatus := strings.ToLower(sim.Client)
+
 	serverFailed := strings.Contains(serverStatus, "failedtostart")
 	alreadyFailed := strings.Contains(errorMap[host], "fail")
+
 	rf2Crashed := strings.Contains(rf2Status, "crashed")
 	alreadyCrashed := strings.Contains(errorMap[host], "crashed")
+
+	isDNS := strings.Contains(clientStatus, "fail")
+	alrDNS := strings.Contains(errorMap[host], "dns")
 
 	if serverFailed && !alreadyFailed {
 		SendSimNoti(fmt.Sprintf("%s | Server Failed", host), ntfyErrURL)
 		errorMap[host] = "server failed"
+		SaveError(sim)
 	} else if !serverFailed && alreadyFailed {
 		delete(errorMap, host)
 	}
 	if rf2Crashed && !alreadyCrashed {
 		SendSimNoti(fmt.Sprintf("%s | Crashed", host), ntfyErrURL)
 		errorMap[host] = "crashed"
+		SaveError(sim)
+
 	} else if !rf2Crashed && alreadyCrashed {
 		delete(errorMap, host)
 	}
+	if isDNS && !alrDNS {
+		SendSimNoti(fmt.Sprintf("%s | DNS", host), ntfyErrURL)
+		errorMap[host] = "dns"
+		SaveError(sim)
 
+	} else if !isDNS && alrDNS {
+		delete(errorMap, host)
+	}
+
+}
+
+func SaveError(sim DaemonState) {
+	file, err := os.OpenFile("assets/sim-errors.json", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+	if err != nil {
+		panic(err)
+	}
+	defer file.Close()
+
+	// Marshal the person struct into JSON
+	data, err := json.Marshal(sim)
+	if err != nil {
+		panic(err)
+	}
+
+	// Write the JSON data to the file
+	_, err = file.Write(data)
+	if err != nil {
+		panic(err)
+	}
+}
+func GetErrorList() {
+	errorList = ""
+	for key := range estopMap {
+		errorList += fmt.Sprintf("%s | ESTOP\n", key)
+	}
+	for key, value := range errorMap {
+		errorList += fmt.Sprintf("%s | %s\n", key, strings.ToUpper(value))
+	}
 }
 
 func SendSimNoti(message string, url string) {
@@ -168,7 +227,8 @@ func main() {
 	go StartWebService()
 	for {
 		go DataFetch(dataURL)
-		time.Sleep(20 * time.Second)
+		go GetErrorList()
+		time.Sleep(fetchInterval)
 
 	}
 }

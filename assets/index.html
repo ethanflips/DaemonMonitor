@@ -1,0 +1,69 @@
+<!DOCTYPE HTML>
+<html>
+
+<head>
+	<meta http-equiv="refresh" content="10">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<style>
+		* {
+			font-family: Verdana;
+		}
+
+		body {
+			background-color: #e5e5f7;
+			opacity: 0.8;
+			background-image: radial-gradient(#7044ae 0.65px, transparent 0.65px), radial-gradient(#7044ae 0.65px, #2c2c3c 0.65px);
+			background-size: 26px 26px;
+			background-position: 0 0, 13px 13px;
+			height: 100%;
+			overflow-y: hidden;
+		}
+
+		.center {
+			display: block;
+			margin-left: auto;
+			margin-right: auto;
+			width: 50%
+		}
+
+		.fixedtr {
+			position: fixed;
+			top: 20px;
+			right: 20px;
+			width: 7%;
+			height: auto;
+			opacity: 0.3;
+		}
+
+		.fixedtl {
+			position: fixed;
+			top: 20px;
+			left: 20px;
+			width: 12%;
+			height: auto;
+			opacity: 0.5;
+			font-size: 80%;
+		}
+
+
+		p {
+			color: lightgrey;
+		}
+	</style>
+
+</head>
+
+<body>
+	<div>
+		<img src="https://i.postimg.cc/XvrMpwXd/Dec-25-Screenshot-from-Remove-bg.png" alt="dm" class="center">
+	</div>
+	<a href="/settings"><img src="https://i.postimg.cc/T2zwVJbd/Screenshot-Dec-26-2024-Remove-Background.png"
+			class="fixedtr"></img></a>
+	<p class="fixedtl">Last Fetch: {{.datatime}}</p>
+	<p>Idle Sims: {{.idle}}</p>
+	<p>Active Sims: {{.active}}</p>
+	<p>{{.errorlist}}</p>
+
+</body>
+
+</html>

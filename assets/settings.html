@@ -1,0 +1,80 @@
+<!DOCTYPE HTML>
+<html>
+
+<head>
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<style>
+		* {
+			font-family: Verdana;
+		}
+
+		body {
+			background-color: #e5e5f7;
+			opacity: 0.8;
+			background-image: radial-gradient(#7044ae 0.65px, transparent 0.65px), radial-gradient(#7044ae 0.65px, #2c2c3c 0.65px);
+			background-size: 26px 26px;
+			background-position: 0 0, 13px 13px;
+		}
+
+		.center {
+			display: block;
+			margin-left: auto;
+			margin-right: auto;
+			width: 50%;
+		}
+
+		.fixedtr {
+			position: fixed;
+			top: 20px;
+			right: 20px;
+			width: 7%;
+			height: auto;
+			opacity: 0.6;
+		}
+
+		input {
+			background-color: #2c2c3c;
+			color: lightgray;
+			border: none;
+			border-bottom: 2px dashed grey;
+			display: inline-block;
+			width: 30%;
+			margin-left: auto;
+			margin-right: auto;
+			margin-top: 50px;
+		}
+
+		button {
+			background-color: #2c2c3c;
+			color: lightgray;
+			border: none;
+			display: inline-block;
+			width: 30%;
+			margin-top: 50px;
+
+		}
+	</style>
+
+</head>
+
+<body>
+	<img src="https://i.postimg.cc/XvrMpwXd/Dec-25-Screenshot-from-Remove-bg.png" alt="dm" class="center">
+
+	<a href="/"><img src="https://icons.veryicon.com/png/o/miscellaneous/medical-system-icon/return-button.png"
+			class="fixedtr"></img></a>
+	<form action="/" method="POST">
+
+		<input type="text" name="dataurl" placeholder="DATA URL">
+		<input type="text" name="estopurl" placeholder="ESTOP NTFY">
+		<input type="text" name="errorurl" placeholder="ERROR NTFY">
+
+
+		<input type="number" name="interval" placeholder="INTERVAL">
+
+		<button type="submit">Submit</button>
+
+	</form>
+
+</body>
+
+</html>
