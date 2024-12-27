@@ -8,12 +8,19 @@
 			font-family: Verdana;
 		}
 
+		p {
+			color: grey;
+			font-size: 12px
+		}
+
 		body {
 			background-color: #e5e5f7;
 			opacity: 0.8;
 			background-image: radial-gradient(#7044ae 0.65px, transparent 0.65px), radial-gradient(#7044ae 0.65px, #2c2c3c 0.65px);
 			background-size: 26px 26px;
 			background-position: 0 0, 13px 13px;
+			height: 100%;
+			overflow: hidden;
 		}
 
 		.center {
@@ -46,11 +53,14 @@
 
 		button {
 			background-color: #2c2c3c;
+			border: 1px solid #ccc;
+			border-radius: 5px;
+			padding: 5px 10px;
 			color: lightgray;
-			border: none;
 			display: inline-block;
-			width: 30%;
+			width: auto;
 			margin-top: 50px;
+			margin-left 50px;
 
 		}
 	</style>
@@ -69,11 +79,20 @@
 		<input type="text" name="errorurl" placeholder="ERROR NTFY">
 
 
-		<input type="number" name="interval" placeholder="INTERVAL">
+		<input type="number" name="interval" placeholder="REFRESH INTERVAL (s)">
 
 		<button type="submit">Submit</button>
 
 	</form>
+	<form action="/" method="post">
+		<button name="fetchon" value="upvote">Upvote</button>
+	</form>
+	<p><br><br>Current Config:<br></p>
+	<p>Data Url:{{.setdataurl}}</p>
+	<p>Estop Url: {{.setestopurl}}</p>
+	<p>Error Url: {{.seterrorurl}}</p>
+	<p>Refresh Interval: {{.setinterval}}</p>
+
 
 </body>
 

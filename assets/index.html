@@ -45,6 +45,24 @@
 			font-size: 80%;
 		}
 
+		.toggle {
+			position: fixed;
+			bottom: 20px;
+			right: 20px;
+			width: 12%;
+			height: auto;
+			font-size: 80%;
+			background-color: #2c2c3c;
+			border: 1px solid #ccc;
+			border-radius: 5px;
+			padding: 5px 10px;
+			color: lightgray;
+			width: auto;
+			margin-top: 50px;
+			margin-left 50px;
+
+		}
+
 
 		p {
 			color: lightgrey;
@@ -60,9 +78,13 @@
 	<a href="/settings"><img src="https://i.postimg.cc/T2zwVJbd/Screenshot-Dec-26-2024-Remove-Background.png"
 			class="fixedtr"></img></a>
 	<p class="fixedtl">Last Fetch: {{.datatime}}</p>
+
 	<p>Idle Sims: {{.idle}}</p>
 	<p>Active Sims: {{.active}}</p>
 	<p>{{.errorlist}}</p>
+	<form action="/" method="post">
+		<button class="toggle" name="fetchtoggle" value="1">{{.fetchon}}</button>
+		<form>
 
 </body>
 

@@ -15,13 +15,14 @@ import (
 )
 
 var dataURL = "http://10.101.20.10:3000/game-servers/daemon-states"
-var fetchInterval = 25 * time.Second
+var fetchInterval = 40 * time.Second
 var ntfyEstopURL = "https://ntfy.sh/ethandaemonalerts555"
 var ntfyErrURL = "https://ntfy.sh/ethandaemonalerts556"
 var activeSims int
 var idleSims int
 var errorList string
 var latestFetch string
+var fetchEnabled = true
 
 type DaemonState struct {
 	Number     int    `json:"number"`
@@ -226,9 +227,13 @@ func main() {
 	fmt.Printf("Daemon Monitor Starting...\n")
 	go StartWebService()
 	for {
-		go DataFetch(dataURL)
-		go GetErrorList()
-		time.Sleep(fetchInterval)
-
+		if fetchEnabled {
+			go DataFetch(dataURL)
+			go GetErrorList()
+			time.Sleep(fetchInterval)
+		} else {
+			fmt.Println("fetch disabled")
+			time.Sleep(90 * time.Second)
+		}
 	}
 }

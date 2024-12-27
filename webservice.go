@@ -14,14 +14,23 @@ type settings struct {
 	interval int
 }
 
+var fetchDisplay string
+
 func StartWebService() {
 	gin.SetMode(gin.ReleaseMode)
 	r := gin.Default()
 	r.ForwardedByClientIP = true
 	r.SetTrustedProxies([]string{"10.10.0.0/255", "10.101.20.0/255", "10.101.10.0/255"})
 	r.GET("/data", GetSimData)
+	r.StaticFile("/favicon.ico", "./assets/favicon.ico")
 	r.LoadHTMLGlob("assets/*")
 	r.GET("/", func(c *gin.Context) {
+		if fetchEnabled {
+			fetchDisplay = "Turn Off Monitoring"
+		} else {
+			fetchDisplay = "Turn On Monitoring"
+		}
+
 		c.HTML(200, "index.html", gin.H{
 			"setinterval": fetchInterval,
 			"setestopurl": ntfyEstopURL,
@@ -31,6 +40,7 @@ func StartWebService() {
 			"idle":        idleSims,
 			"errorlist":   errorList,
 			"datatime":    latestFetch,
+			"fetchon":     fetchDisplay,
 		})
 	})
 	r.GET("/settings", func(c *gin.Context) {
@@ -43,6 +53,15 @@ func StartWebService() {
 	})
 
 	r.POST("/", func(c *gin.Context) {
+		if c.PostForm("fetchtoggle") == "1" {
+			fetchEnabled = !fetchEnabled
+		}
+		if fetchEnabled {
+			fetchDisplay = "Turn Off Monitoring"
+		} else {
+			fetchDisplay = "Turn On Monitoring"
+		}
+
 		s := settings{
 			dataurl:  c.PostForm("dataurl"),
 			estopurl: "https://ntfy.sh/" + c.PostForm("estopurl"),
@@ -71,6 +90,7 @@ func StartWebService() {
 			"active":      activeSims,
 			"idle":        idleSims,
 			"errorlist":   errorList,
+			"fetchon":     fetchDisplay,
 		})
 
 	})
